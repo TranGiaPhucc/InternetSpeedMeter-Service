@@ -1,5 +1,6 @@
 package com.hufi.internetspeedmeter;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -130,6 +131,7 @@ public class InternetSpeedMeter extends Service {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
+    @SuppressLint("RestrictedApi")
     private void showNotification() {
         // TODO Auto-generated method stub
 
@@ -168,16 +170,32 @@ public class InternetSpeedMeter extends Service {
             icon = Icon.createWithBitmap(bitmap);
         }
 
-        //NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "My notification");
-        startForeground(1, new NotificationCompat.Builder(this, "My notification")
-                //.setContentTitle("Internet Speed Meter" + "     " + connectionType)
-                .setContentTitle("Connection type: " + connectionType)
-                .setContentText(contentText)
-                //builder.setSmallIcon(R.mipmap.ic_launcher_round);
-                .setSmallIcon(IconCompat.createFromIcon(icon))
-                .setAutoCancel(false)
-                .setOnlyAlertOnce(true)
-                .build());
+        ConnectivityManager manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        //For 3G check
+        boolean is3g = manager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE)
+                .isConnectedOrConnecting();
+        //For WiFi Check
+        boolean isWifi = manager.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
+                .isConnectedOrConnecting();
+        if (is3g || isWifi) {
+            //NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "My notification");
+            startForeground(1, new NotificationCompat.Builder(this, "My notification")
+                    //.setContentTitle("Internet Speed Meter" + "     " + connectionType)
+                    .setContentTitle("Connection type: " + connectionType)
+                    .setContentText(contentText)
+                    //builder.setSmallIcon(R.mipmap.ic_launcher_round);
+                    .setSmallIcon(IconCompat.createFromIcon(icon))
+                    .setAutoCancel(false)
+                    .setOnlyAlertOnce(true)
+                    .build());
+        }
+        else {
+            stopForeground(true);
+
+            NotificationManager notificationManager = (NotificationManager)
+                    getSystemService(NOTIFICATION_SERVICE);
+            notificationManager.cancelAll();
+        }
         /*NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this);
         managerCompat.notify(1, builder.build());*/
     }
